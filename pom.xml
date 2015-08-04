@@ -54,7 +54,7 @@
                                         implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass></mainClass>
+                                    <mainClass>com.eduonix.realtime.TeleMaticProducer</mainClass>
                                 </transformer>
                             </transformers>
 
@@ -63,6 +63,27 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>ant-magic</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <tasks>
+                                <copy file="target/${project.name}-${project.version}.jar"
+                                      tofile="${project.basedir}/uberjar/ubu-p1.jar"/>
+                            </tasks>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+
         </plugins>
     </build>
 
@@ -114,9 +135,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
-
-
 
 
         <!-- Other Dependency -->
