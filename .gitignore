@@ -1,0 +1,12 @@
+.settings
+.project
+.idea
+target
+*.class
+*.jar
+*.iml
+*part-r*
+*SUCCESS*
+.classpath
+uberjar
+
