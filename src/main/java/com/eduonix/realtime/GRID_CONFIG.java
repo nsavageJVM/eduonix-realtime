@@ -12,7 +12,7 @@ public enum GRID_CONFIG {
     KAFKA_ZKROOT("/realtime-event_sprout"),
     KAFKA_BROKER_LIST("sandbox.hortonworks.com:6667"),
     KAFKA_SPOUT_ID("kafkaSpout"),
-    SPOUT_ID("StormSpout"),
+    SPOUT_ID("realtime-event"),
     LOG_RT_EVENT_BOLT_ID("logRealTimeEventBolt"),
     TOPOLOGY_ID("realtime-event-processor");
 

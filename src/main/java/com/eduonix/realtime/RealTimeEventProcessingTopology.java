@@ -10,9 +10,11 @@ import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.spout.SpoutOutputCollector;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
+import backtype.storm.topology.BasicOutputCollector;
 import backtype.storm.topology.IRichSpout;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.TopologyBuilder;
+import backtype.storm.topology.base.BaseBasicBolt;
 import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
@@ -57,9 +59,14 @@ public class RealTimeEventProcessingTopology {
             Config conf = new Config();
             conf.setDebug(true);
             conf.setNumWorkers(2);
+            conf.setMaxTaskParallelism(3);
+
 
             topologyBuilder.setSpout("localSpout", new RealTimeEventsLocalSpout(), 5);
-            topologyBuilder.setBolt("log", new RealTimeEventsBolt(), 8);
+            topologyBuilder.setBolt("log", new RealTimeEventsLocalBolt(), 8).shuffleGrouping("localSpout").fieldsGrouping("localSpout", new Fields("realtime-event"));
+            topologyBuilder.setBolt("test", new RealTimeEventsKafkaStreamBolt(), 8).fieldsGrouping("log",
+                    new Fields(RealTimeEventScheme.LEGITIMATE_REAL_TIME, RealTimeEventScheme.LEGITIMATE_REAL_TIME_ID));
+
 
             LocalCluster cluster = new LocalCluster();
 
@@ -70,11 +77,6 @@ public class RealTimeEventProcessingTopology {
             cluster.shutdown();
 
         }
-
-
-
-
-
 
     }
 
@@ -92,7 +94,7 @@ public class RealTimeEventProcessingTopology {
 
     public static void pipe_Spout_To_Log_RealTimeEvents_Bolt(TopologyBuilder builder)
     {
-        RealTimeEventsBolt logBolt = new RealTimeEventsBolt();
+        RealTimeEventsKafkaStreamBolt logBolt = new RealTimeEventsKafkaStreamBolt();
         builder.setBolt(GRID_CONFIG.LOG_RT_EVENT_BOLT_ID.getGridAttribute(), logBolt ).globalGrouping(GRID_CONFIG.KAFKA_SPOUT_ID.getGridAttribute());
     }
 
@@ -114,27 +116,52 @@ public class RealTimeEventProcessingTopology {
 
 
 
-    static class RealTimeEventsBolt extends BaseRichBolt {
+    static class RealTimeEventsLocalBolt extends BaseBasicBolt {
 
         public void prepare(Map map, TopologyContext topologyContext, OutputCollector outputCollector) {
             //no output.
         }
 
-        public void execute(Tuple tuple) {
+        public void execute(Tuple tuple, BasicOutputCollector collector) {
 
-            String debugInfo = tuple.getStringByField(RealTimeEventScheme.LEGITIMATE_REAL_TIME)+ "," +
+            String real_time_Event =  tuple.getString(0);
+
+            String[] data = real_time_Event.split("\t");
+            String real_time = data[0];
+            String real_time_Id = data[1];
+
+            System.out.println("debugInfo: "+tuple);
+
+            collector.emit(new Values(real_time,real_time_Id));
+        }
+
+        public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
+            outputFieldsDeclarer.declare(new Fields(RealTimeEventScheme.LEGITIMATE_REAL_TIME,  RealTimeEventScheme.LEGITIMATE_REAL_TIME_ID));
+        }
+    }
+
+    static class RealTimeEventsKafkaStreamBolt extends BaseBasicBolt {
+
+        public void prepare(Map map, TopologyContext topologyContext, OutputCollector outputCollector) {
+            //no output.
+        }
+
+        public void execute(Tuple tuple, BasicOutputCollector collector) {
+
+            String debugInfo = tuple.getStringByField(RealTimeEventScheme.LEGITIMATE_REAL_TIME )+ "," +
                     tuple.getStringByField(RealTimeEventScheme.LEGITIMATE_REAL_TIME_ID);
 
-            LOG.info(debugInfo);
 
+            System.out.println("RealTimeEventsKafkaStreamBolt local test debugInfo: "+tuple);
 
-            System.out.println(debugInfo);
+            collector.emit(new Values("RealTimeEventsKafkaStreamBolt local test debugInfo:: "+tuple));
         }
 
         public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
             //no output.
         }
     }
+
 
 
     static class  RealTimeEventScheme implements Scheme {
