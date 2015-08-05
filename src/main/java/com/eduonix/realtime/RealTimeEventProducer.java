@@ -10,9 +10,9 @@ import java.util.Properties;
 /**
  * Created by ubu on 04.08.15.
  */
-public class TeleMaticProducer {
+public class RealTimeEventProducer {
 
-    private static final Logger LOG = Logger.getLogger(TeleMaticProducer.class);
+    private static final Logger LOG = Logger.getLogger(RealTimeEventProducer.class);
 
     private static final String brokerList= "sandbox.hortonworks.com:6667";
     private static final String zookeeperHost= "sandbox.hortonworks.com:2181";
@@ -36,7 +36,17 @@ public class TeleMaticProducer {
 
         while(count< 5000) {
 
-            event= "stream event number "+ count++;
+            if(count%100==0) {
+
+                event= "stream event illegitimate \t"+ count++;
+
+            } else {
+
+                event= "stream event legitimate \t "+ count++;
+            }
+
+
+
             KeyedMessage<String, String> data = new KeyedMessage<String, String>(TOPIC, event);
             LOG.info("Sending Messge #:msg:" + event);
             producer.send(data);
