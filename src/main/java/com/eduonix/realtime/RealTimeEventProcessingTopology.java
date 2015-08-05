@@ -88,8 +88,14 @@ public class RealTimeEventProcessingTopology {
         }
 
         public void execute(Tuple tuple) {
-            LOG.info(tuple.getStringByField(RealTimeEventScheme.LEGITIMATE_REAL_TIME)+ "," +
-                    tuple.getStringByField(RealTimeEventScheme.LEGITIMATE_REAL_TIME_ID));
+
+            String debugInfo = tuple.getStringByField(RealTimeEventScheme.LEGITIMATE_REAL_TIME)+ "," +
+                    tuple.getStringByField(RealTimeEventScheme.LEGITIMATE_REAL_TIME_ID);
+
+            LOG.info(debugInfo);
+
+
+            System.out.println(debugInfo);
         }
 
         public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
