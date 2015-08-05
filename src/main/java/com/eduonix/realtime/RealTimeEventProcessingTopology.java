@@ -104,7 +104,7 @@ public class RealTimeEventProcessingTopology {
         BrokerHosts hosts = new ZkHosts(GRID_CONFIG.KAFKA_ZOOKEEPER_HOST.getGridAttribute());
         String topic = GRID_CONFIG.KAFKA_TOPIC.getGridAttribute();
         String zkRoot = GRID_CONFIG.KAFKA_ZKROOT.getGridAttribute();
-        String spoutId = GRID_CONFIG.SPOUT_ID.getGridAttribute();
+        String spoutId = GRID_CONFIG.KAFKA_SPOUT_ID.getGridAttribute();
 
         SpoutConfig spoutConfig = new SpoutConfig(hosts, topic, zkRoot, spoutId);
 
@@ -178,7 +178,7 @@ public class RealTimeEventProcessingTopology {
                 String[] data = real_time_Event.split("\t");
                 String real_time = data[0];
                 String real_time_Id = data[1];
-                return new Values(real_time,real_time_Id);
+                return new Values(real_time, real_time_Id);
 
             }
             catch (UnsupportedEncodingException e)
