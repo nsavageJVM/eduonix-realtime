@@ -1,5 +1,6 @@
 package com.eduonix.realtime;
 
+import backtype.storm.utils.Utils;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
@@ -45,6 +46,7 @@ public class RealTimeEventProducer {
                 event= "stream event legitimate \t "+ count++;
             }
 
+            Utils.sleep(100);
 
 
             KeyedMessage<String, String> data = new KeyedMessage<String, String>(TOPIC, event);

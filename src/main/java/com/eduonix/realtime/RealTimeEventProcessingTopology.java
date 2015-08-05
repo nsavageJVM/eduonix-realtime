@@ -1,19 +1,23 @@
 package com.eduonix.realtime;
 
 import backtype.storm.Config;
+import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
 import backtype.storm.generated.AlreadyAliveException;
 import backtype.storm.generated.InvalidTopologyException;
 import backtype.storm.spout.Scheme;
 import backtype.storm.spout.SchemeAsMultiScheme;
+import backtype.storm.spout.SpoutOutputCollector;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
+import backtype.storm.topology.IRichSpout;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
+import backtype.storm.utils.Utils;
 import org.apache.log4j.Logger;
 import storm.kafka.BrokerHosts;
 import storm.kafka.KafkaSpout;
@@ -32,19 +36,44 @@ public class RealTimeEventProcessingTopology {
 
     private static final Logger LOG = Logger.getLogger(RealTimeEventProcessingTopology.class);
 
+    static boolean runOnCluster = false;
+
 
     public static void main(String[] args) throws AlreadyAliveException, InvalidTopologyException {
 
         TopologyBuilder topologyBuilder = new TopologyBuilder();
 
-        pipe_Kafka_To_Spout(topologyBuilder);
+        if(runOnCluster) {
+            pipe_Kafka_To_Spout(topologyBuilder);
+            pipe_Spout_To_Log_RealTimeEvents_Bolt(topologyBuilder);
 
-        pipe_Spout_To_Log_RealTimeEvents_Bolt(topologyBuilder);
+            Config conf = new Config();
+            conf.setDebug(true);
 
-        Config conf = new Config();
-        conf.setDebug(true);
+            StormSubmitter.submitTopology(GRID_CONFIG.TOPOLOGY_ID.getGridAttribute(), conf, topologyBuilder.createTopology());
 
-        StormSubmitter.submitTopology(GRID_CONFIG.TOPOLOGY_ID.getGridAttribute(),  conf, topologyBuilder.createTopology());
+        } else {
+
+            Config conf = new Config();
+            conf.setDebug(true);
+            conf.setNumWorkers(2);
+
+            topologyBuilder.setSpout("localSpout", new RealTimeEventsLocalSpout(), 5);
+            topologyBuilder.setBolt("log", new RealTimeEventsBolt(), 8);
+
+            LocalCluster cluster = new LocalCluster();
+
+            cluster.submitTopology("test", conf, topologyBuilder.createTopology());
+
+            Utils.sleep(10000);
+            cluster.killTopology("test");
+            cluster.shutdown();
+
+        }
+
+
+
+
 
 
     }
@@ -56,6 +85,10 @@ public class RealTimeEventProcessingTopology {
 
         builder.setSpout(GRID_CONFIG.KAFKA_SPOUT_ID.getGridAttribute(), kafkaSpout);
     }
+
+
+
+
 
     public static void pipe_Spout_To_Log_RealTimeEvents_Bolt(TopologyBuilder builder)
     {
@@ -134,5 +167,58 @@ public class RealTimeEventProcessingTopology {
             return keysForTuple;
         }
     }
+
+
+
+
+    static class RealTimeEventsLocalSpout implements IRichSpout {
+
+        String event = "";
+        int count = 0;
+
+        SpoutOutputCollector _collector;
+
+        public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
+            outputFieldsDeclarer.declare(new Fields("realtime-event"));
+        }
+
+        public Map<String, Object> getComponentConfiguration() {
+            return null;
+        }
+
+        public void open(Map map, TopologyContext topologyContext, SpoutOutputCollector spoutOutputCollector) {
+            _collector = spoutOutputCollector;
+        }
+
+        public void close() {
+
+        }
+
+        public void activate() {
+
+        }
+
+        public void deactivate() {
+
+        }
+
+        public void nextTuple() {
+
+            event= "stream event legitimate \t "+ count++;
+            _collector.emit(new Values(event));
+            Utils.sleep(100);
+
+        }
+
+        public void ack(Object o) {
+
+        }
+
+        public void fail(Object o) {
+
+        }
+    }
+
+
 
 }
