@@ -38,7 +38,7 @@ public class RealTimeEventProcessingTopology {
 
     private static final Logger LOG = Logger.getLogger(RealTimeEventProcessingTopology.class);
 
-    static boolean runOnCluster = false;
+    static boolean runOnCluster = true;
 
 
     public static void main(String[] args) throws AlreadyAliveException, InvalidTopologyException {
@@ -63,9 +63,15 @@ public class RealTimeEventProcessingTopology {
 
 
             topologyBuilder.setSpout("localSpout", new RealTimeEventsLocalSpout(), 5);
-            topologyBuilder.setBolt("log", new RealTimeEventsLocalBolt(), 8).shuffleGrouping("localSpout").fieldsGrouping("localSpout", new Fields("realtime-event"));
-            topologyBuilder.setBolt("test", new RealTimeEventsKafkaStreamBolt(), 8).fieldsGrouping("log",
-                    new Fields(RealTimeEventScheme.LEGITIMATE_REAL_TIME, RealTimeEventScheme.LEGITIMATE_REAL_TIME_ID));
+            topologyBuilder.setBolt(
+                    "log", new RealTimeEventsLocalBolt(), 8)
+                    .shuffleGrouping("localSpout")
+                    .fieldsGrouping("localSpout", new Fields("realtime-event"));
+            topologyBuilder.setBolt(
+                    "test", new RealTimeEventsKafkaStreamBolt(), 8)
+                    .fieldsGrouping("log",
+                            new Fields(RealTimeEventScheme.LEGITIMATE_REAL_TIME,
+                                    RealTimeEventScheme.LEGITIMATE_REAL_TIME_ID));
 
 
             LocalCluster cluster = new LocalCluster();
@@ -77,19 +83,14 @@ public class RealTimeEventProcessingTopology {
             cluster.shutdown();
 
         }
-
     }
 
 
-    public static void pipe_Kafka_To_Spout(TopologyBuilder builder)
-    {
+    public static void pipe_Kafka_To_Spout(TopologyBuilder builder) {
         KafkaSpout kafkaSpout = new KafkaSpout(pipe_Kafka_To_Spout());
 
         builder.setSpout(GRID_CONFIG.KAFKA_SPOUT_ID.getGridAttribute(), kafkaSpout);
     }
-
-
-
 
 
     public static void pipe_Spout_To_Log_RealTimeEvents_Bolt(TopologyBuilder builder)
@@ -115,7 +116,6 @@ public class RealTimeEventProcessingTopology {
 
 
 
-
     static class RealTimeEventsLocalBolt extends BaseBasicBolt {
 
         public void prepare(Map map, TopologyContext topologyContext, OutputCollector outputCollector) {
@@ -136,7 +136,8 @@ public class RealTimeEventProcessingTopology {
         }
 
         public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-            outputFieldsDeclarer.declare(new Fields(RealTimeEventScheme.LEGITIMATE_REAL_TIME,  RealTimeEventScheme.LEGITIMATE_REAL_TIME_ID));
+            outputFieldsDeclarer.declare(
+                    new Fields(RealTimeEventScheme.LEGITIMATE_REAL_TIME,  RealTimeEventScheme.LEGITIMATE_REAL_TIME_ID));
         }
     }
 
@@ -154,15 +155,13 @@ public class RealTimeEventProcessingTopology {
 
             System.out.println("RealTimeEventsKafkaStreamBolt local test debugInfo: "+tuple);
 
-            collector.emit(new Values("RealTimeEventsKafkaStreamBolt local test debugInfo:: "+tuple));
+            collector.emit(new Values("RealTimeEventsKafkaStreamBolt  debugInfo:: "+tuple));
         }
 
         public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
             //no output.
         }
     }
-
-
 
     static class  RealTimeEventScheme implements Scheme {
 
@@ -194,9 +193,6 @@ public class RealTimeEventProcessingTopology {
             return keysForTuple;
         }
     }
-
-
-
 
     static class RealTimeEventsLocalSpout implements IRichSpout {
 
