@@ -102,29 +102,31 @@ public class RealTimeEventProcessingTopology {
 
     public static void pipe_Spout_To_Log_RealTimeEvents_Bolt(TopologyBuilder builder)
     {
-       // RealTimeEventsKafkaStreamBolt logBolt = new RealTimeEventsKafkaStreamBolt();
-    //    builder.setBolt(GRID_CONFIG.LOG_RT_EVENT_BOLT_ID.getGridAttribute(), logBolt ).globalGrouping(GRID_CONFIG.KAFKA_SPOUT_ID.getGridAttribute());
+       RealTimeEventsKafkaStreamBolt logBolt = new RealTimeEventsKafkaStreamBolt();
+       builder.setBolt(GRID_CONFIG.LOG_RT_EVENT_BOLT_ID.getGridAttribute(), logBolt ).globalGrouping(GRID_CONFIG.KAFKA_SPOUT_ID.getGridAttribute());
 
-        RecordFormat format = new DelimitedRecordFormat().withFieldDelimiter(",");
-        //Rotate every X minutes
-        FileTimeRotationPolicy rotationPolicy = new FileTimeRotationPolicy
-                (5, FileTimeRotationPolicy.Units.MINUTES);
-        //Synchronize data buffer with the filesystem every 100 tuples
-        SyncPolicy syncPolicy = new CountSyncPolicy(100);
-        String fsUrl = "hdfs://sandbox.hortonworks.com:8020";
+//        RecordFormat format = new DelimitedRecordFormat().withFieldDelimiter(",");
+//        //Rotate every X minutes
+//        FileTimeRotationPolicy rotationPolicy = new FileTimeRotationPolicy
+//                (5, FileTimeRotationPolicy.Units.MINUTES);
+//        //Synchronize data buffer with the filesystem every 100 tuples
+//        SyncPolicy syncPolicy = new CountSyncPolicy(100);
+//        String fsUrl = "hdfs://sandbox.hortonworks.com:8020";
+//
+//        FileNameFormat fileNameFormat = new DefaultFileNameFormat()
+//                .withPath("/root" )
+//                .withPrefix(".txt");
+//        // Instantiate the HdfsBolt
+//        HdfsBolt hdfsBolt = new HdfsBolt()
+//                .withFsUrl(fsUrl)
+//                .withFileNameFormat(fileNameFormat)
+//                .withRecordFormat(format)
+//                .withRotationPolicy(rotationPolicy)
+//                .withSyncPolicy(syncPolicy);
 
-        FileNameFormat fileNameFormat = new DefaultFileNameFormat()
-                .withPath("/root" )
-                .withPrefix(".txt");
-        // Instantiate the HdfsBolt
-        HdfsBolt hdfsBolt = new HdfsBolt()
-                .withFsUrl(fsUrl)
-                .withFileNameFormat(fileNameFormat)
-                .withRecordFormat(format)
-                .withRotationPolicy(rotationPolicy)
-                .withSyncPolicy(syncPolicy);
+     //   builder.setBolt(GRID_CONFIG.LOG_RT_EVENT_BOLT_ID.getGridAttribute(), hdfsBolt ).globalGrouping(GRID_CONFIG.KAFKA_SPOUT_ID.getGridAttribute());
 
-        builder.setBolt(GRID_CONFIG.LOG_RT_EVENT_BOLT_ID.getGridAttribute(), hdfsBolt ).globalGrouping(GRID_CONFIG.KAFKA_SPOUT_ID.getGridAttribute());
+        builder.setBolt(GRID_CONFIG.LOG_RT_EVENT_BOLT_ID.getGridAttribute(), logBolt ).globalGrouping(GRID_CONFIG.KAFKA_SPOUT_ID.getGridAttribute());
     }
 
 
