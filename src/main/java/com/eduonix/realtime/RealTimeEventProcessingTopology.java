@@ -59,8 +59,6 @@ public class RealTimeEventProcessingTopology {
             Config conf = new Config();
             conf.setDebug(true);
 
-            pipe_Spout_To_Log_RealTimeEvents_Bolt(topologyBuilder);
-
             StormSubmitter.submitTopology(GRID_CONFIG.TOPOLOGY_ID.getGridAttribute(), conf, topologyBuilder.createTopology());
 
         } else {
@@ -125,7 +123,7 @@ public class RealTimeEventProcessingTopology {
                 .withRecordFormat(format)
                 .withRotationPolicy(rotationPolicy)
                 .withSyncPolicy(syncPolicy);
-        
+
         builder.setBolt(GRID_CONFIG.LOG_RT_EVENT_BOLT_ID.getGridAttribute(), hdfsBolt ).globalGrouping(GRID_CONFIG.KAFKA_SPOUT_ID.getGridAttribute());
     }
 
