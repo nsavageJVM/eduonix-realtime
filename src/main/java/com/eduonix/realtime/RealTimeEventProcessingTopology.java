@@ -95,8 +95,10 @@ public class RealTimeEventProcessingTopology {
 
     public static void pipe_Spout_To_Log_RealTimeEvents_Bolt(TopologyBuilder builder)
     {
-        RealTimeEventsKafkaStreamBolt logBolt = new RealTimeEventsKafkaStreamBolt();
-        builder.setBolt(GRID_CONFIG.LOG_RT_EVENT_BOLT_ID.getGridAttribute(), logBolt ).globalGrouping(GRID_CONFIG.KAFKA_SPOUT_ID.getGridAttribute());
+       // RealTimeEventsKafkaStreamBolt logBolt = new RealTimeEventsKafkaStreamBolt();
+        RealTimeEventsKafkaStreamToHDFSBolt hdfsBolt = new RealTimeEventsKafkaStreamToHDFSBolt();
+    //    builder.setBolt(GRID_CONFIG.LOG_RT_EVENT_BOLT_ID.getGridAttribute(), logBolt ).globalGrouping(GRID_CONFIG.KAFKA_SPOUT_ID.getGridAttribute());
+        builder.setBolt(GRID_CONFIG.LOG_RT_EVENT_BOLT_ID.getGridAttribute(), hdfsBolt ).globalGrouping(GRID_CONFIG.KAFKA_SPOUT_ID.getGridAttribute());
     }
 
 
@@ -163,7 +165,7 @@ public class RealTimeEventProcessingTopology {
         }
     }
 
-    static class  RealTimeEventScheme implements Scheme {
+   static class  RealTimeEventScheme implements Scheme {
 
         public static final String LEGITIMATE_REAL_TIME  = "legitimate_event";
 
