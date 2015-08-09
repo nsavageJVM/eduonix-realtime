@@ -21,6 +21,13 @@ import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 import backtype.storm.utils.Utils;
 import org.apache.log4j.Logger;
+import org.apache.storm.hdfs.bolt.HdfsBolt;
+import org.apache.storm.hdfs.bolt.format.DefaultFileNameFormat;
+import org.apache.storm.hdfs.bolt.format.DelimitedRecordFormat;
+import org.apache.storm.hdfs.bolt.format.FileNameFormat;
+import org.apache.storm.hdfs.bolt.format.RecordFormat;
+import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
+import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
 import storm.kafka.BrokerHosts;
 import storm.kafka.KafkaSpout;
 import storm.kafka.SpoutConfig;
@@ -51,6 +58,8 @@ public class RealTimeEventProcessingTopology {
 
             Config conf = new Config();
             conf.setDebug(true);
+
+            pipe_Spout_To_Log_RealTimeEvents_Bolt(topologyBuilder);
 
             StormSubmitter.submitTopology(GRID_CONFIG.TOPOLOGY_ID.getGridAttribute(), conf, topologyBuilder.createTopology());
 
@@ -96,8 +105,27 @@ public class RealTimeEventProcessingTopology {
     public static void pipe_Spout_To_Log_RealTimeEvents_Bolt(TopologyBuilder builder)
     {
        // RealTimeEventsKafkaStreamBolt logBolt = new RealTimeEventsKafkaStreamBolt();
-        RealTimeEventsKafkaStreamToHDFSBolt hdfsBolt = new RealTimeEventsKafkaStreamToHDFSBolt();
     //    builder.setBolt(GRID_CONFIG.LOG_RT_EVENT_BOLT_ID.getGridAttribute(), logBolt ).globalGrouping(GRID_CONFIG.KAFKA_SPOUT_ID.getGridAttribute());
+
+        RecordFormat format = new DelimitedRecordFormat().withFieldDelimiter(",");
+        //Rotate every X minutes
+        FileTimeRotationPolicy rotationPolicy = new FileTimeRotationPolicy
+                (5, FileTimeRotationPolicy.Units.MINUTES);
+        //Synchronize data buffer with the filesystem every 100 tuples
+        SyncPolicy syncPolicy = new CountSyncPolicy(100);
+        String fsUrl = "hdfs://sandbox.hortonworks.com:8020";
+
+        FileNameFormat fileNameFormat = new DefaultFileNameFormat()
+                .withPath("/root" )
+                .withPrefix("real_time_events");
+        // Instantiate the HdfsBolt
+        HdfsBolt hdfsBolt = new HdfsBolt()
+                .withFsUrl(fsUrl)
+                .withFileNameFormat(fileNameFormat)
+                .withRecordFormat(format)
+                .withRotationPolicy(rotationPolicy)
+                .withSyncPolicy(syncPolicy);
+        
         builder.setBolt(GRID_CONFIG.LOG_RT_EVENT_BOLT_ID.getGridAttribute(), hdfsBolt ).globalGrouping(GRID_CONFIG.KAFKA_SPOUT_ID.getGridAttribute());
     }
 
