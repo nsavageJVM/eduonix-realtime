@@ -115,7 +115,7 @@ public class RealTimeEventProcessingTopology {
 
         FileNameFormat fileNameFormat = new DefaultFileNameFormat()
                 .withPath("/root" )
-                .withPrefix("real_time_events");
+                .withPrefix(".txt");
         // Instantiate the HdfsBolt
         HdfsBolt hdfsBolt = new HdfsBolt()
                 .withFsUrl(fsUrl)
